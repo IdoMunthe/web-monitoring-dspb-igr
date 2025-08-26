@@ -43,11 +43,13 @@ export default function Page() {
   const [kodeToko, setKodeToko] = useState("All");
 
   useEffect(() => {
+    console.log(BASE_URL)
     const fetchDataToko = async () => {
       try {
         setLoadingToko(true);
         const response = await axios.get(`${BASE_URL}/toko-list`);
         setKodeTokoList(response.data.data);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error("Error at /toko-list: ", error.message);
       } finally {
@@ -72,6 +74,7 @@ export default function Page() {
         });
         setData(response.data.data);
         console.log(response.data.data);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         console.error("Error at /log-npb: ", error.message);
       } finally {
