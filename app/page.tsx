@@ -2,6 +2,8 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import Skeleton from "./components/Skeleton";
+import Image from "next/image";
+import { parseStringPromise } from "xml2js";
 
 type LogNpb = {
   tgl_proses: string;
@@ -20,16 +22,23 @@ interface tokoList {
   tko_kodeomi: string;
 }
 
+interface Branch {
+  CAB_KODECABANG: string;
+  CAB_NAMACABANG: string;
+  IP_ADDRESS: string;
+}
+
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const formatter = (date: string) => {
   const [year, month, day] = date.split("-");
-  const formattedDate = `${day}-${month}-${year}`;
-  return formattedDate;
+  return `${day}-${month}-${year}`;
 };
 
 const today = new Date().toISOString().split("T")[0];
-const yesterday = new Date(new Date().setDate(new Date().getDate() -1)).toISOString().split("T")[0]
+const yesterday = new Date(new Date().setDate(new Date().getDate() - 1))
+  .toISOString()
+  .split("T")[0];
 
 export default function Page() {
   const [loading, setLoading] = useState(false);
@@ -41,16 +50,27 @@ export default function Page() {
   const [jenisNpb, setJenisNpb] = useState("All");
   const [statusKirim, setStatusKirim] = useState("All");
   const [kodeToko, setKodeToko] = useState("All");
+  const [branchList, setBranchList] = useState<Branch[]>([]);
+  const [cabang, setCabang] = useState("21");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    console.log(BASE_URL)
     const fetchDataToko = async () => {
       try {
         setLoadingToko(true);
-        const response = await axios.get(`${BASE_URL}/toko-list`);
+        const response = await axios.get(`${BASE_URL}/toko-list`, {
+          params: {
+            kodeCabang: cabang,
+          },
+        });
         setKodeTokoList(response.data.data);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
+        const backendMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Terjadi Error. Coba lagi!";
+        setErrorMessage(backendMessage);
+        console.log(backendMessage);
         console.error("Error at /toko-list: ", error.message);
       } finally {
         setLoadingToko(false);
@@ -70,58 +90,179 @@ export default function Page() {
             jenisNpb,
             statusKirim,
             kodeToko,
+            kodeCabang: cabang,
           },
         });
-        setData(response.data.data);
-        console.log(response.data.data);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (response.data.success) {
+          setData(response.data.data);
+        } else {
+          setErrorMessage(response.data.message);
+          console.log(response.data.message);
+        }
       } catch (error: any) {
+        const backendMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Terjadi Error. Coba lagi!";
+        setErrorMessage(backendMessage);
+        console.log(backendMessage);
         console.error("Error at /log-npb: ", error.message);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [tglAwal, tglAkhir, jenisNpb, statusKirim, kodeToko]);
+  }, [tglAwal, tglAkhir, jenisNpb, statusKirim, kodeToko, cabang]);
+
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const response = await axios.get(
+          `${BASE_URL}/branch-list`,
+          { responseType: "text" } // force plain text, not JSON
+        );
+
+        // parse XML into JS object
+        const result = await parseStringPromise(response.data, {
+          explicitArray: false,
+        });
+
+        // navigate XML tree -> IGR.BRANCH
+        const branches = Array.isArray(result.IGR.BRANCH)
+          ? result.IGR.BRANCH
+          : [result.IGR.BRANCH];
+
+        setBranchList(branches);
+      } catch (error: any) {
+        const backendMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Terjadi Error. Coba lagi!";
+        setErrorMessage(backendMessage);
+        console.log(backendMessage);
+        console.error("Error fetching branches:", error);
+      }
+    };
+
+    fetchBranches();
+  }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Web Monitoring DSPB IGR.</h1>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex items-center justify-between ">
+        <h1 className="text-3xl font-extrabold mb-6 text-blue-800 border-b-4 border-red-500 inline-block">
+          Web Monitoring DSPB IGR
+        </h1>
+        <Image
+          src={"/logo-igr.png"}
+          alt="logo indogrosir"
+          width={128}
+          height={128}
+          className="pb-4"
+        />
+      </div>
+
+      {/* Cabang */}
+      {/* <div className="mb-6 bg-white p-4 rounded-2xl shadow w-[20vw] mx-auto">
+        <div className="flex flex-col justify-center">
+          <label
+            htmlFor="tglAwal"
+            className="text-sm font-semibold text-blue-700 mb-1"
+          >
+            Cabang
+          </label>
+          <select
+            id="cabang"
+            value={cabang}
+            onChange={(e) => {
+              setCabang(e.target.value);
+              console.log(e.target.value);
+            }} // <-- use cabang state
+            className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
+          >
+            {branchList.map((branch, i) => (
+              <option key={i} value={branch.CAB_KODECABANG}>
+                {branch.CAB_KODECABANG} - {branch.CAB_NAMACABANG}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div> */}
 
       {/* Filters */}
-      <div className="flex flex-row gap-4 mb-4">
+      <div className="flex gap-4 mb-2 bg-white p-4 rounded-2xl shadow">
+        {/* Cabang */}
+        <div className="flex flex-col justify-center flex-[2]">
+          <label
+            htmlFor="cabang"
+            className="text-sm font-semibold text-blue-700 mb-1"
+          >
+            Cabang
+          </label>
+          <select
+            id="cabang"
+            value={cabang}
+            onChange={(e) => {
+              setCabang(e.target.value);
+              console.log(e.target.value);
+            }}
+            className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
+          >
+            {branchList.map((branch, i) => (
+              <option key={i} value={branch.CAB_KODECABANG}>
+                {branch.CAB_KODECABANG} - {branch.CAB_NAMACABANG}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Tanggal Awal */}
         <div className="flex flex-col flex-1">
-          <label htmlFor="tglAwal">Tanggal Awal</label>
+          <label
+            htmlFor="tglAwal"
+            className="text-sm font-semibold text-blue-700 mb-1"
+          >
+            Tanggal Awal
+          </label>
           <input
             id="tglAwal"
             type="date"
             value={tglAwal}
             onChange={(e) => setTglAwal(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Tanggal Akhir */}
         <div className="flex flex-col flex-1">
-          <label htmlFor="tglAkhir">Tanggal Akhir</label>
+          <label
+            htmlFor="tglAkhir"
+            className="text-sm font-semibold text-blue-700 mb-1"
+          >
+            Tanggal Akhir
+          </label>
           <input
             id="tglAkhir"
             type="date"
             value={tglAkhir}
             onChange={(e) => setTglAkhir(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* Jenis NPB */}
         <div className="flex flex-col flex-1">
-          <label htmlFor="jenisNpb">Jenis NPB</label>
+          <label
+            htmlFor="jenisNpb"
+            className="text-sm font-semibold text-blue-700 mb-1"
+          >
+            Jenis NPB
+          </label>
           <select
             id="jenisNpb"
             value={jenisNpb}
             onChange={(e) => setJenisNpb(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           >
             <option>All</option>
             <option>DRY</option>
@@ -134,12 +275,17 @@ export default function Page() {
 
         {/* Status Kirim */}
         <div className="flex flex-col flex-1">
-          <label htmlFor="statusKirim">Status Kirim</label>
+          <label
+            htmlFor="statusKirim"
+            className="text-sm font-semibold text-blue-700 mb-1"
+          >
+            Status Kirim
+          </label>
           <select
             id="statusKirim"
             value={statusKirim}
             onChange={(e) => setStatusKirim(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           >
             <option value="All">All</option>
             <option value="Sukses">Sukses</option>
@@ -149,15 +295,20 @@ export default function Page() {
 
         {/* Kode Toko */}
         <div className="flex flex-col flex-1">
-          <label htmlFor="kodeToko">Kode Toko</label>
+          <label
+            htmlFor="kodeToko"
+            className="text-sm font-semibold text-blue-700 mb-1"
+          >
+            Kode Toko
+          </label>
           <select
             id="kodeToko"
             value={kodeToko}
             onChange={(e) => setKodeToko(e.target.value)}
-            className="border p-2 rounded w-full"
+            className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           >
             {loadingToko ? (
-              <option>loading data...</option>
+              <option>Loading...</option>
             ) : (
               <>
                 <option>All</option>
@@ -172,10 +323,9 @@ export default function Page() {
 
       {/* Table */}
       {loading ? (
-        // skeleton table
-        <table className="w-full border">
-          <thead>
-            <tr className="bg-gray-200">
+        <table className="w-full border bg-white rounded-2xl shadow overflow-hidden">
+          <thead className="bg-blue-800 text-white">
+            <tr>
               <th className="border p-2">Tanggal Proses</th>
               <th className="border p-2">Kode Toko</th>
               <th className="border p-2">No PB</th>
@@ -190,45 +340,23 @@ export default function Page() {
           <tbody>
             {Array.from({ length: 5 }).map((_, i) => (
               <tr key={i}>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-24" />
-                </td>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-16" />
-                </td>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-20" />
-                </td>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-16" />
-                </td>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-24" />
-                </td>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-16" />
-                </td>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-20" />
-                </td>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-16" />
-                </td>
-                <td className="border p-2">
-                  <Skeleton className="h-4 w-16" />
-                </td>
+                {Array.from({ length: 9 }).map((_, j) => (
+                  <td key={j} className="border p-2">
+                    <Skeleton className="h-4 w-24" />
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
         </table>
       ) : data.length === 0 ? (
-        <div className="flex w-[100%] h-[80vh] font-bold text-4xl justify-center items-center">
+        <div className="flex w-full h-[70vh] font-bold text-3xl text-red-600 justify-center items-center">
           Tidak ada data
         </div>
       ) : (
-        <table className="w-full border">
-          <thead>
-            <tr className="bg-gray-200">
+        <table className="w-full border bg-white rounded-2xl shadow overflow-hidden">
+          <thead className="bg-blue-800 text-white">
+            <tr>
               <th className="border p-2">Tanggal Proses</th>
               <th className="border p-2">Kode Toko</th>
               <th className="border p-2">No PB</th>
@@ -242,7 +370,10 @@ export default function Page() {
           </thead>
           <tbody>
             {data.map((row, index) => (
-              <tr key={index}>
+              <tr
+                key={index}
+                className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
+              >
                 <td className="border p-2">{row.tgl_proses.split("T")[0]}</td>
                 <td className="border p-2">{row.kode_toko}</td>
                 <td className="border p-2">{row.no_pb}</td>
@@ -250,14 +381,39 @@ export default function Page() {
                 <td className="border p-2">{row.no_dspb}</td>
                 <td className="border p-2">{row.filename}</td>
                 <td className="border p-2">{row.jenis_npb}</td>
-                <td className="border p-2">
+                <td
+                  className={`border p-2 font-semibold ${
+                    row.response.includes("SUKSES")
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                >
                   {row.response.includes("SUKSES") ? "Sukses" : "Gagal"}
                 </td>
-                <td className="border p-2">{row.jml_push_ulang}</td>
+                <td className="border p-2 font-semibold">
+                  {row.jml_push_ulang}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
+      )}
+
+      {errorMessage && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-xl shadow-lg w-96 p-6 text-center ">
+            <h2 className="text-2xl font-bold text-red-600">Terjadi Error</h2>
+            <p className="mt-2">message:</p>
+            <p className="text-gray-700 font-bold">{errorMessage}</p>
+            <p className="text-red-600 font-bold mt-1">Silakan coba lagi!</p>
+            <button
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              onClick={() => setErrorMessage("")}
+            >
+              OK
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
