@@ -64,6 +64,7 @@ export default function Page() {
           },
         });
         setKodeTokoList(response.data.data);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         const backendMessage =
           error.response?.data?.message ||
@@ -99,6 +100,7 @@ export default function Page() {
           setErrorMessage(response.data.message);
           console.log(response.data.message);
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         const backendMessage =
           error.response?.data?.message ||
@@ -133,6 +135,7 @@ export default function Page() {
           : [result.IGR.BRANCH];
 
         setBranchList(branches);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         const backendMessage =
           error.response?.data?.message ||
