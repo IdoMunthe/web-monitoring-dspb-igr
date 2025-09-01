@@ -36,7 +36,7 @@ const formatter = (date: string) => {
 };
 
 const today = new Date().toISOString().split("T")[0];
-const yesterday = new Date(new Date().setDate(new Date().getDate() - 1))
+const yesterday = new Date(new Date().setDate(new Date().getDate() - 5))
   .toISOString()
   .split("T")[0];
 
@@ -231,7 +231,15 @@ export default function Page() {
             id="tglAwal"
             type="date"
             value={tglAwal}
-            onChange={(e) => setTglAwal(e.target.value)}
+            // onChange={(e) => setTglAwal(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value > tglAkhir) {
+                setErrorMessage("Tanggal Awal tidak boleh lebih besar dari Tanggal Akhir"); // <-- show popup
+                return;
+              }
+              setTglAwal(value)
+            }}
             className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -248,7 +256,16 @@ export default function Page() {
             id="tglAkhir"
             type="date"
             value={tglAkhir}
-            onChange={(e) => setTglAkhir(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              console.log(value)
+              if (value < tglAwal) {
+                setErrorMessage("Tanggal Akhir tidak boleh lebih kecil dari Tanggal Awal"); // <-- show popup
+                return;
+              }
+              setTglAkhir(value);
+            }}
+            
             className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -405,8 +422,8 @@ export default function Page() {
       {errorMessage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-xl shadow-lg w-96 p-6 text-center ">
-            <h2 className="text-2xl font-bold text-red-600">Terjadi Error</h2>
-            <p className="mt-2">message:</p>
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Terjadi Error</h2>
+            {/* <p className="mt-2">message:</p> */}
             <p className="text-gray-700 font-bold">{errorMessage}</p>
             <p className="text-red-600 font-bold mt-1">Silakan coba lagi!</p>
             <button
