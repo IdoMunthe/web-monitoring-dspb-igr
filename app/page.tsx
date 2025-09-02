@@ -54,10 +54,10 @@ export default function Page() {
   const [cabang, setCabang] = useState("21");
   const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
-    const savedCabang = localStorage.getItem("cabang");
-    if (savedCabang) setCabang(savedCabang);
-  }, []);
+  // useEffect(() => {
+  //   const savedCabang = localStorage.getItem("cabang");
+  //   if (savedCabang) setCabang(savedCabang);
+  // }, []);
 
   useEffect(() => {
     const fetchDataToko = async () => {
@@ -154,7 +154,7 @@ export default function Page() {
           "47",
           "50",
         ];
-
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const filteredBranch = branches.filter((branch: any) =>
           allowedCodes.includes(branch.CAB_KODECABANG)
         );
@@ -232,8 +232,8 @@ export default function Page() {
             value={cabang}
             onChange={(e) => {
               setCabang(e.target.value);
-              localStorage.setItem("cabang", e.target.value);
-              // console.log(e.target.value);
+              // localStorage.setItem("cabang", e.target.value);
+              console.log(e.target.value);
             }}
             className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           >
