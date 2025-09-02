@@ -55,6 +55,11 @@ export default function Page() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    const savedCabang = localStorage.getItem("cabang");
+    if (savedCabang) setCabang(savedCabang);
+  }, []);
+
+  useEffect(() => {
     const fetchDataToko = async () => {
       try {
         setLoadingToko(true);
@@ -78,7 +83,7 @@ export default function Page() {
       }
     };
     fetchDataToko();
-  }, []);
+  }, [cabang]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -134,7 +139,27 @@ export default function Page() {
           ? result.IGR.BRANCH
           : [result.IGR.BRANCH];
 
-        setBranchList(branches);
+        const allowedCodes = [
+          "21",
+          "22",
+          "26",
+          "27",
+          "32",
+          "33",
+          "34",
+          "38",
+          "43",
+          "44",
+          "46",
+          "47",
+          "50",
+        ];
+
+        const filteredBranch = branches.filter((branch: any) =>
+          allowedCodes.includes(branch.CAB_KODECABANG)
+        );
+
+        setBranchList(filteredBranch);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         const backendMessage =
@@ -207,7 +232,8 @@ export default function Page() {
             value={cabang}
             onChange={(e) => {
               setCabang(e.target.value);
-              console.log(e.target.value);
+              localStorage.setItem("cabang", e.target.value);
+              // console.log(e.target.value);
             }}
             className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           >
@@ -235,10 +261,12 @@ export default function Page() {
             onChange={(e) => {
               const value = e.target.value;
               if (value > tglAkhir) {
-                setErrorMessage("Tanggal Awal tidak boleh lebih besar dari Tanggal Akhir"); // <-- show popup
+                setErrorMessage(
+                  "Tanggal Awal tidak boleh lebih besar dari Tanggal Akhir"
+                ); // <-- show popup
                 return;
               }
-              setTglAwal(value)
+              setTglAwal(value);
             }}
             className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           />
@@ -258,14 +286,15 @@ export default function Page() {
             value={tglAkhir}
             onChange={(e) => {
               const value = e.target.value;
-              console.log(value)
+              console.log(value);
               if (value < tglAwal) {
-                setErrorMessage("Tanggal Akhir tidak boleh lebih kecil dari Tanggal Awal"); // <-- show popup
+                setErrorMessage(
+                  "Tanggal Akhir tidak boleh lebih kecil dari Tanggal Awal"
+                ); // <-- show popup
                 return;
               }
               setTglAkhir(value);
             }}
-            
             className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -422,7 +451,9 @@ export default function Page() {
       {errorMessage && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-xl shadow-lg w-96 p-6 text-center ">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">Terjadi Error</h2>
+            <h2 className="text-2xl font-bold text-red-600 mb-4">
+              Terjadi Error
+            </h2>
             {/* <p className="mt-2">message:</p> */}
             <p className="text-gray-700 font-bold">{errorMessage}</p>
             <p className="text-red-600 font-bold mt-1">Silakan coba lagi!</p>
