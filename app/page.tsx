@@ -100,6 +100,7 @@ export default function Page() {
           },
         });
         if (response.data.success) {
+          console.log(response.data.data);
           setData(response.data.data);
         } else {
           setErrorMessage(response.data.message);
@@ -338,7 +339,7 @@ export default function Page() {
           >
             <option value="All">All</option>
             <option value="Sukses">Sukses</option>
-            <option value="Gagal">Gagal</option>
+            <option value="GAGAL">Gagal</option>
           </select>
         </div>
 
