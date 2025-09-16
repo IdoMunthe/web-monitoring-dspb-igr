@@ -252,7 +252,7 @@ export default function Page() {
             htmlFor="tglAwal"
             className="text-sm font-semibold text-blue-700 mb-1"
           >
-            Tanggal Awal
+            Tanggal Proses Awal
           </label>
           <input
             id="tglAwal"
@@ -279,7 +279,7 @@ export default function Page() {
             htmlFor="tglAkhir"
             className="text-sm font-semibold text-blue-700 mb-1"
           >
-            Tanggal Akhir
+            Tanggal Proses Akhir
           </label>
           <input
             id="tglAkhir"
