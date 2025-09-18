@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Skeleton from "./components/Skeleton";
 import Image from "next/image";
 import { parseStringPromise } from "xml2js";
+import api from "./api";
+import { useRouter } from "next/navigation";
+import { useAuth } from "./context/AuthContext";
 
 type LogNpb = {
   tgl_proses: string;
@@ -41,6 +44,8 @@ const yesterday = new Date(new Date().setDate(new Date().getDate() - 5))
   .split("T")[0];
 
 export default function Page() {
+  const { branch } = useAuth();
+
   const [loading, setLoading] = useState(false);
   const [loadingToko, setLoadingToko] = useState(false);
   const [kodeTokoList, setKodeTokoList] = useState<tokoList[]>([]);
@@ -51,8 +56,11 @@ export default function Page() {
   const [statusKirim, setStatusKirim] = useState("All");
   const [kodeToko, setKodeToko] = useState("All");
   const [branchList, setBranchList] = useState<Branch[]>([]);
-  const [cabang, setCabang] = useState("21");
+  const [cabang, setCabang] = useState(branch);
   const [errorMessage, setErrorMessage] = useState("");
+  const [branchTitle, setBranchTitle] = useState("")
+
+  const router = useRouter();
 
   // useEffect(() => {
   //   const savedCabang = localStorage.getItem("cabang");
@@ -63,9 +71,9 @@ export default function Page() {
     const fetchDataToko = async () => {
       try {
         setLoadingToko(true);
-        const response = await axios.get(`${BASE_URL}/toko-list`, {
+        const response = await api.get(`${BASE_URL}/toko-list`, {
           params: {
-            kodeCabang: cabang,
+            branch,
           },
         });
         setKodeTokoList(response.data.data);
@@ -83,20 +91,20 @@ export default function Page() {
       }
     };
     fetchDataToko();
-  }, [cabang]);
+  }, [branch]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${BASE_URL}/log-npb`, {
+        const response = await api.get(`${BASE_URL}/log-npb`, {
           params: {
             startDate: formatter(tglAwal),
             endDate: formatter(tglAkhir),
             jenisNpb,
             statusKirim,
             kodeToko,
-            kodeCabang: cabang,
+            branch,
           },
         });
         if (response.data.success) {
@@ -106,6 +114,7 @@ export default function Page() {
           setErrorMessage(response.data.message);
           console.log(response.data.message);
         }
+        console.log(branch);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         const backendMessage =
@@ -120,12 +129,12 @@ export default function Page() {
       }
     };
     fetchData();
-  }, [tglAwal, tglAkhir, jenisNpb, statusKirim, kodeToko, cabang]);
+  }, [tglAwal, tglAkhir, jenisNpb, statusKirim, kodeToko, branch]);
 
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const response = await axios.get(
+        const response = await api.get(
           `${BASE_URL}/branch-list`,
           { responseType: "text" } // force plain text, not JSON
         );
@@ -161,6 +170,12 @@ export default function Page() {
         );
 
         setBranchList(filteredBranch);
+
+        const branchTitleFilter = filteredBranch.filter(
+          (branch: any) => branch.CAB_KODECABANG === branch
+        );
+        setBranchTitle(branchTitleFilter.CAB_NAMACABANG)
+        console.log(branchTitleFilter.CAB_NAMACABANG);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         const backendMessage =
@@ -180,7 +195,7 @@ export default function Page() {
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="flex items-center justify-between ">
         <h1 className="text-3xl font-extrabold mb-6 text-blue-800 border-b-4 border-red-500 inline-block">
-          Web Monitoring DSPB IGR
+          Web Monitoring DSPB IGR {branchTitle}
         </h1>
         <Image
           src={"/logo-igr.png"}
@@ -221,7 +236,7 @@ export default function Page() {
       {/* Filters */}
       <div className="flex gap-4 mb-2 bg-white p-4 rounded-2xl shadow">
         {/* Cabang */}
-        <div className="flex flex-col justify-center flex-[2]">
+        {/* <div className="flex flex-col justify-center flex-[2]">
           <label
             htmlFor="cabang"
             className="text-sm font-semibold text-blue-700 mb-1"
@@ -244,7 +259,7 @@ export default function Page() {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
         {/* Tanggal Awal */}
         <div className="flex flex-col flex-1">
@@ -456,14 +471,27 @@ export default function Page() {
               Terjadi Error
             </h2>
             {/* <p className="mt-2">message:</p> */}
-            <p className="text-gray-700 font-bold">{errorMessage}</p>
+            <p className="text-gray-700 font-bold">
+              {errorMessage.includes("No token")
+                ? "Harus Login Terlebih Dahulu"
+                : errorMessage}
+            </p>
             <p className="text-red-600 font-bold mt-1">Silakan coba lagi!</p>
-            <button
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              onClick={() => setErrorMessage("")}
-            >
-              OK
-            </button>
+            {errorMessage.includes("No token") ? (
+              <button
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => router.push("/login")}
+              >
+                Login
+              </button>
+            ) : (
+              <button
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => setErrorMessage("")}
+              >
+                OK
+              </button>
+            )}
           </div>
         </div>
       )}
