@@ -132,14 +132,13 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center h-screen bg-[url(/images.jpeg)]">
-      <Image
+      {/* <Image
                 src={"/logo-igr.png"}
                 alt="logo indogrosir"
                 width={128}
                 height={128}
-                className="pb-4"
-              />
-      {/* <Image src="/images.jpeg" alt="gambar igr" width= className="flex items-center justify-center h-screen"></Image> */}
+                className="pb-4 -z-10 w-full h-screen absolute"
+              /> */}
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle className="text-3xl font-extrabold mb-6 text-blue-700 border-b-2 border-red-400 mx-8 text-center">

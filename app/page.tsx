@@ -68,6 +68,13 @@ export default function Page() {
   // }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem("token")
+    if(!token) {
+      return router.push("/login")
+    }
+  }, [router])
+
+  useEffect(() => {
     const fetchDataToko = async () => {
       try {
         setLoadingToko(true);
@@ -464,37 +471,38 @@ export default function Page() {
         </table>
       )}
 
-      {errorMessage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white rounded-xl shadow-lg w-96 p-6 text-center ">
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
-              Terjadi Error
-            </h2>
-            {/* <p className="mt-2">message:</p> */}
-            <p className="text-gray-700 font-bold">
-              {errorMessage.includes("No token")
-                ? "Harus Login Terlebih Dahulu"
-                : errorMessage}
-            </p>
-            <p className="text-red-600 font-bold mt-1">Silakan coba lagi!</p>
-            {errorMessage.includes("No token") ? (
-              <button
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={() => router.push("/login")}
-              >
-                Login
-              </button>
-            ) : (
-              <button
-                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={() => setErrorMessage("")}
-              >
-                OK
-              </button>
-            )}
+      {errorMessage &&
+        !errorMessage.includes("No token") &&(
+          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+            <div className="bg-white rounded-xl shadow-lg w-96 p-6 text-center ">
+              <h2 className="text-2xl font-bold text-red-600 mb-4">
+                Terjadi Error
+              </h2>
+              {/* <p className="mt-2">message:</p> */}
+              <p className="text-gray-700 font-bold">
+                {errorMessage.includes("No token")
+                  ? "Harus Login Terlebih Dahulu"
+                  : errorMessage}
+              </p>
+              <p className="text-red-600 font-bold mt-1">Silakan coba lagi!</p>
+              {errorMessage.includes("No token") ? (
+                <button
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={() => router.push("/login")}
+                >
+                  Login
+                </button>
+              ) : (
+                <button
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={() => setErrorMessage("")}
+                >
+                  OK
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }
