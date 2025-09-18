@@ -40,8 +40,10 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
   // const [username, setUsername] = useState("155");
   // const [password, setPassword] = useState("123");
-  const [username, setUsername] = useState("004");
-  const [password, setPassword] = useState("004");
+  // const [username, setUsername] = useState("004");
+  // const [password, setPassword] = useState("004");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [branch, setBranch] = useState("44");
 
   const router = useRouter();
