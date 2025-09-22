@@ -7,6 +7,7 @@ import { parseStringPromise } from "xml2js";
 import api from "./api";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./context/AuthContext";
+import { LogOut } from "lucide-react";
 
 type LogNpb = {
   tgl_proses: string;
@@ -44,7 +45,7 @@ const yesterday = new Date(new Date().setDate(new Date().getDate() - 5))
   .split("T")[0];
 
 export default function Page() {
-  const { branch } = useAuth();
+  const { branch, username, logout } = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [loadingToko, setLoadingToko] = useState(false);
@@ -58,7 +59,7 @@ export default function Page() {
   const [branchList, setBranchList] = useState<Branch[]>([]);
   const [cabang, setCabang] = useState(branch);
   const [errorMessage, setErrorMessage] = useState("");
-  const [branchTitle, setBranchTitle] = useState("")
+  const [branchTitle, setBranchTitle] = useState("");
 
   const router = useRouter();
 
@@ -68,11 +69,11 @@ export default function Page() {
   // }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    if(!token) {
-      return router.push("/login")
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return router.push("/login");
     }
-  }, [router])
+  }, [router]);
 
   useEffect(() => {
     const fetchDataToko = async () => {
@@ -136,7 +137,7 @@ export default function Page() {
       }
     };
     fetchData();
-  }, [tglAwal, tglAkhir, jenisNpb, statusKirim, kodeToko, branch]);
+  }, [tglAwal, tglAkhir, jenisNpb, statusKirim, kodeToko]);
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -181,7 +182,7 @@ export default function Page() {
         const branchTitleFilter = filteredBranch.filter(
           (branch: any) => branch.CAB_KODECABANG === branch
         );
-        setBranchTitle(branchTitleFilter.CAB_NAMACABANG)
+        setBranchTitle(branchTitleFilter.CAB_NAMACABANG);
         console.log(branchTitleFilter.CAB_NAMACABANG);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
@@ -200,45 +201,24 @@ export default function Page() {
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center justify-between ">
-        <h1 className="text-3xl font-extrabold mb-6 text-blue-800 border-b-4 border-red-500 inline-block">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-extrabold text-blue-800 border-b-4 border-red-500 inline-block">
           Web Monitoring DSPB IGR {branchTitle}
         </h1>
-        <Image
-          src={"/logo-igr.png"}
-          alt="logo indogrosir"
-          width={128}
-          height={128}
-          className="pb-4"
-        />
-      </div>
+        <div className="flex gap-1 items-center justify-center border px-3 py-2 border-gray-300 rounded-lg bg-white shadow-sm">
+          <span className="font-semibold  bg-[#244ccc] px-3 py-1.5 rounded-md text-white text-sm hover:bg-[#1f41af] transition-colors duration-200 cursor-default">
+            {username}
+          </span>
 
-      {/* Cabang */}
-      {/* <div className="mb-6 bg-white p-4 rounded-2xl shadow w-[20vw] mx-auto">
-        <div className="flex flex-col justify-center">
-          <label
-            htmlFor="tglAwal"
-            className="text-sm font-semibold text-blue-700 mb-1"
+          <button
+            onClick={logout}
+            className="flex items-center gap-2 px-3 py-1.5 pb-2 rounded-md bg-[#E30613] text-white font-medium text-sm hover:bg-[#c10510] transition-colors duration-200 cursor-pointer"
           >
-            Cabang
-          </label>
-          <select
-            id="cabang"
-            value={cabang}
-            onChange={(e) => {
-              setCabang(e.target.value);
-              console.log(e.target.value);
-            }} // <-- use cabang state
-            className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
-          >
-            {branchList.map((branch, i) => (
-              <option key={i} value={branch.CAB_KODECABANG}>
-                {branch.CAB_KODECABANG} - {branch.CAB_NAMACABANG}
-              </option>
-            ))}
-          </select>
+            <LogOut size={18} className="text-white" />
+            <span>Logout</span>
+          </button>
         </div>
-      </div> */}
+      </div>
 
       {/* Filters */}
       <div className="flex gap-4 mb-2 bg-white p-4 rounded-2xl shadow">
@@ -471,38 +451,43 @@ export default function Page() {
         </table>
       )}
 
-      {errorMessage &&
-        !errorMessage.includes("No token") &&(
-          <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-            <div className="bg-white rounded-xl shadow-lg w-96 p-6 text-center ">
-              <h2 className="text-2xl font-bold text-red-600 mb-4">
-                Terjadi Error
-              </h2>
-              {/* <p className="mt-2">message:</p> */}
-              <p className="text-gray-700 font-bold">
-                {errorMessage.includes("No token")
-                  ? "Harus Login Terlebih Dahulu"
-                  : errorMessage}
-              </p>
-              <p className="text-red-600 font-bold mt-1">Silakan coba lagi!</p>
-              {errorMessage.includes("No token") ? (
-                <button
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  onClick={() => router.push("/login")}
-                >
-                  Login
-                </button>
-              ) : (
-                <button
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                  onClick={() => setErrorMessage("")}
-                >
-                  OK
-                </button>
-              )}
-            </div>
+      {errorMessage && !errorMessage.includes("No token") && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="bg-white rounded-xl shadow-lg w-96 p-6 text-center ">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">
+              Terjadi Error
+            </h2>
+            {/* <p className="mt-2">message:</p> */}
+            <p className="text-gray-700 font-bold">
+              {errorMessage.includes("No token")
+                ? "Harus Login Terlebih Dahulu"
+                : errorMessage}
+            </p>
+            <p className="text-red-600 font-bold mt-1">
+              {errorMessage.includes("No token") ||
+              errorMessage.includes("Invalid token")
+                ? "Harus Login Terlebih Dahulu!"
+                : "Silakan coba lagi!"}
+            </p>
+            {errorMessage.includes("No token") ||
+            errorMessage.includes("Invalid token") ? (
+              <button
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => router.push("/login")}
+              >
+                Login
+              </button>
+            ) : (
+              <button
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={() => setErrorMessage("")}
+              >
+                OK
+              </button>
+            )}
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 }

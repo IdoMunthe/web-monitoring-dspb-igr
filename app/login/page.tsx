@@ -62,8 +62,16 @@ export default function LoginPage() {
       // localStorage.setItem("token", response.data.token);
       // console.log("Login success: ", response);
 
-      setAuth(response.data.token, response.data.user.branch);
-      console.log(response.data.token, response.data.user.branch);
+      setAuth(
+        response.data.token,
+        response.data.user.branch,
+        response.data.user.userid
+      );
+      console.log(
+        response.data.token,
+        response.data.user.branch,
+        response.data.user.userid
+      );
       router.push("/");
     } catch (error: any) {
       console.error("Error: ", error.message);
