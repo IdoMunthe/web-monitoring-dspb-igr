@@ -360,7 +360,7 @@ export default function Page() {
             className="border border-blue-300 p-2 rounded-md focus:ring-2 focus:ring-blue-500"
           >
             <option value="All">All</option>
-            <option value="Sukses">Sukses</option>
+            <option value="SUKSES">Sukses</option>
             <option value="GAGAL">Gagal</option>
           </select>
         </div>
